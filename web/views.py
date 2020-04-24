@@ -122,6 +122,11 @@ def submit_income(request):
     
     }, encoder=JSONEncoder)
 
+
+def index(request):
+    context={}
+    return render(request,'index.html',context)
+
 @csrf_exempt
 def submit_expense(request):
     # request is all the data that user has send with any method.
