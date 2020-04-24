@@ -55,27 +55,40 @@ def register(request):
             return render(request, 'register.html', context)
 
         if not User.objects.filter(username = request.POST['username']).exists(): #if user does not exists
-                code = random_str(28)
-                now = datetime.now()
-                email = request.POST['email']
-                password = make_password(request.POST['password'])
-                username = request.POST['username']
-                temporarycode = Passwordresetcodes (email = email, time = now, code = code, username=username, password=password)
-                temporarycode.save()
-                message = PMMail(api_key = settings.POSTMARK_API_TOKEN,
-                                 subject = "فعال سازی اکانت بستون",
-                                 sender = "jadi@jadi.net",
-                                 to = email,
-                                 text_body = "برای فعال سازی ایمیلی بستون خود روی لینک روبرو کلیک کنید: http://iran-parts.ir/bestoon/register/?email={}&code={}".format(email, code),
-                                 tag = "acouunt request")
-                message.send()
-                context = {'message': 'ایمیلی حاوی لینک فعال سازی اکانت به شما فرستاده شده، لطفا پس از چک کردن ایمیل، روی لینک کلیک کنید.'}
+            code = random_str(28)
+            now = datetime.now()
+            email = request.POST['email']
+            password = make_password(request.POST['password'])
+            username = request.POST['username']
+            temporarycode = Passwordresetcodes (email = email, time = now, code = code, username=username, password=password)
+            temporarycode.save()
+            '''message = PMMail(api_key = settings.POSTMARK_API_TOKEN,
+                                subject = "فعال سازی اکانت بستون",
+                                sender = "jadi@jadi.net",
+                                to = email,
+                                text_body = "برای فعال سازی ایمیلی بستون خود روی لینک روبرو کلیک کنید: http://iran-parts.ir/bestoon/register/?email={}&code={}".format(email, code),
+                                tag = "acouunt request")
+            message.send()
+            context = {'message': 'ایمیلی حاوی لینک فعال سازی اکانت به شما فرستاده شده، لطفا پس از چک کردن ایمیل، روی لینک کلیک کنید.'}'''
+
+            if Passwordresetcodes.objects.filter(code=code).exists(): #if code is in temporary db, read the data and create the user
+                new_temp_user = Passwordresetcodes.objects.get(code=code)
+                newuser = User.objects.create(username=new_temp_user.username, password=new_temp_user.password, email=email)
+                this_token = random_str(48)
+                token=Token.objects.create(user= newuser, token= this_token)
+                Passwordresetcodes.objects.filter(code=code).delete() #delete the temporary activation code from db
+                context = {'message': 'اکانت شما ساخته شد. توکن شما {} است. آن را ذخیره کنید چون دیگر نمایش داده نخواهد شد! جدی'.format(this_token)}
                 return render(request, 'login.html', context)
+            else:
+                context = {'message': 'این کد فعال سازی معتبر نیست. در صورت نیاز دوباره تلاش کنید'}
+                return render(request, 'login.html', context)
+            
+            return render(request, 'login.html', context)
         else:
             context = {'message': 'متاسفانه این نام کاربری قبلا استفاده شده است. از نام کاربری دیگری استفاده کنید. ببخشید که فرم ذخیره نشده. درست می شه'} #TODO: forgot password
             #TODO: keep the form data
             return render(request, 'register.html', context)
-    elif request.GET.has_key('code'): # user clicked on code
+        '''elif request.GET.has_key('code'): # user clicked on code
         logger.debug("def register code: " + format(request.GET))
         email = request.GET['email']
         code = request.GET['code']
@@ -89,7 +102,7 @@ def register(request):
             return render(request, 'login.html', context)
         else:
             context = {'message': 'این کد فعال سازی معتبر نیست. در صورت نیاز دوباره تلاش کنید'}
-            return render(request, 'login.html', context)
+            return render(request, 'login.html', context)'''
     else:
         context = {'message': ''}
         return render(request, 'register.html', context)

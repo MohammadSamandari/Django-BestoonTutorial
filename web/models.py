@@ -29,7 +29,7 @@ class Expense(models.Model):
     amount = models.BigIntegerField()
     user = models.ForeignKey(User)
     def __unicode__(self):
-        return "{}-{}".format(self.date,self.amount)
+        return "{} - {} - {}".format(self.date,self.user,self.amount)
 
 
 # this is the model for the income.
@@ -39,7 +39,7 @@ class Income(models.Model):
     amount = models.BigIntegerField()
     user= models.ForeignKey(User)
     def __unicode__(self):
-        return "{}-{}".format(self.date,self.amount)
+        return "{} - {} - {}".format(self.date,self.user,self.amount)
         # this function is returing the string to be shown in the admin page in the models title.
 
 
