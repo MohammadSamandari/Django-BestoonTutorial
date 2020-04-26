@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import requests
+import random
+import string
+import time
 
 from django.conf import settings
 from django.shortcuts import render
@@ -12,9 +15,7 @@ from datetime import datetime
 from django.contrib.auth import authenticate, login, logout
 #from postmark import PMMail
 from django.contrib.auth.hashers import make_password
-import random
-import string
-import time
+from django.db.models import Sum, Count
 
 # Create your views here.
 
@@ -107,9 +108,30 @@ def register(request):
         context = {'message': ''}
         return render(request, 'register.html', context)
 
+@csrf_exempt
+def generalstat(request):
+    #TODO: should get a valid duration (from - to ), if not, use 1 month
+    #TODO: is the token valid?
+    this_token = request.POST['token']
+    this_user = User.objects.filter(token__token = this_token).get()
+    income=Income.objects.filter(user= this_user).aggregate(Count('amount'),Sum('amount'))
+    expense=Expense.objects.filter(user= this_user).aggregate(Count('amount'),Sum('amount'))
+
+    context={}
+    context['expense']=expense
+    context['income']=income
+    return JsonResponse(context,encoder=JSONEncoder)
+
+
+def index(request):
+    context={}
+    return render(request,'index.html',context)
 
 @csrf_exempt
 def submit_income(request):
+    #TODO: is the token valid?
+    # TODO: Validate data, user might be fake, token might be fake , amount might be fake, amount might ne ...
+
     this_token = request.POST['token']
     this_user= User.objects.filter(token__token=this_token).get()
     if 'date' not in request.POST:
@@ -122,17 +144,13 @@ def submit_income(request):
     
     }, encoder=JSONEncoder)
 
-
-def index(request):
-    context={}
-    return render(request,'index.html',context)
-
 @csrf_exempt
 def submit_expense(request):
     # request is all the data that user has send with any method.
     ''' User submits an expense '''
 
     # TODO: Validate data, user might be fake, token might be fake , amount might be fake, amount might ne ...
+    #TODO: is the token valid?
 
     this_token = request.POST['token']
     this_user = User.objects.filter(token__token = this_token).get()
