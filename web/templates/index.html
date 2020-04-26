@@ -16,6 +16,12 @@
 </div>
 
 
+{% if message %}
+<div class="bs-callout bs-callout-info">
+  <h5>{{ message }}</h5>
+</div>
+{% endif %}
+
 
 <div class="row">
     <div class="col-md-12">
@@ -29,7 +35,7 @@
          </p>
          <p>
            برای باز کردن اکانت
-           <a href="/accounts/registe/"> صفحه رجیستر شدن برین</a>
+           <a href="/accounts/register/"> صفحه رجیستر شدن برین</a>
            و برای اطلاعات بیشتر مراجعه کنید به 
            <a href="https://github.com/MohammadSamandari/Django-BestoonTutorial">گیت هاب بروژه</a>
          </p>
